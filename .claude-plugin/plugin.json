@@ -1,0 +1,9 @@
+{
+  "name": "flowplan",
+  "version": "0.1.0",
+  "description": "Visual flowchart planning tool for Claude Code — generates interactive, editable flowcharts in the browser",
+  "author": {
+    "name": "Alistair Anthony"
+  },
+  "license": "MIT"
+}
