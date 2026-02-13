@@ -109,15 +109,19 @@ export async function autoLayout(
   const layout = await elk.layout(elkGraph as any);
 
   // Map positions back from ELK output
+  // ELK positions children relative to their parent compound node,
+  // which matches React Flow's parentId behavior — no offset accumulation needed.
   const positionMap = new Map<string, { x: number; y: number }>();
+  const dimensionMap = new Map<string, { width: number; height: number }>();
 
-  function extractPositions(children: any[], offsetX = 0, offsetY = 0): void {
+  function extractPositions(children: any[]): void {
     for (const child of children) {
-      const x = (child.x ?? 0) + offsetX;
-      const y = (child.y ?? 0) + offsetY;
-      positionMap.set(child.id, { x, y });
+      positionMap.set(child.id, { x: child.x ?? 0, y: child.y ?? 0 });
+      if (child.width && child.height) {
+        dimensionMap.set(child.id, { width: child.width, height: child.height });
+      }
       if (child.children) {
-        extractPositions(child.children, x, y);
+        extractPositions(child.children);
       }
     }
   }
@@ -126,11 +130,20 @@ export async function autoLayout(
     extractPositions(layout.children);
   }
 
-  // Apply new positions to the document
+  // Apply new positions and dimensions to the document
   const updatedNodes = doc.nodes.map((node) => {
     const newPos = positionMap.get(node.id);
-    if (newPos) {
-      return { ...node, position: newPos };
+    const newDims = dimensionMap.get(node.id);
+    if (newPos || newDims) {
+      const updated = { ...node };
+      if (newPos) updated.position = newPos;
+      if (newDims && node.type === 'phase_group') {
+        updated.data = {
+          ...updated.data,
+          style: { ...updated.data.style, width: newDims.width, height: newDims.height },
+        };
+      }
+      return updated;
     }
     return node;
   });

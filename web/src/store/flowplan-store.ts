@@ -35,13 +35,18 @@ function getEdgeStyle(edgeType: EdgeType): Record<string, string> {
 }
 
 function fpNodeToRFNode(node: FlowPlanNode): Node {
+  const style: Record<string, any> = {};
+  if (node.type === 'phase_group') {
+    style.width = node.data.style?.width ?? 400;
+    style.height = node.data.style?.height ?? 250;
+  }
   return {
     id: node.id,
     type: node.type,
     position: node.position,
     parentId: node.parentNode ?? undefined,
     data: { ...node.data },
-    ...(node.type === 'phase_group' ? { style: { width: 400, height: 250 } } : {}),
+    ...(Object.keys(style).length > 0 ? { style } : {}),
   };
 }
 

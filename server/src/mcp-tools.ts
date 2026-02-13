@@ -58,6 +58,12 @@ export function registerTools(
     },
     async (args) => {
       try {
+        const metadata = args.metadata || {};
+        // Extract status from metadata if provided (e.g. metadata: {status: "completed"})
+        const validStatuses = ['pending', 'in_progress', 'completed', 'blocked'];
+        const status = validStatuses.includes(metadata.status) ? metadata.status : 'pending';
+        // Remove status from metadata to avoid duplication
+        const { status: _s, ...cleanMetadata } = metadata;
         const nodeId = store.addNode(args.flowchart_id, {
           type: args.type,
           position: args.position,
@@ -65,8 +71,8 @@ export function registerTools(
           data: {
             label: args.label,
             description: args.description || '',
-            status: 'pending',
-            metadata: args.metadata || {},
+            status,
+            metadata: cleanMetadata,
             style: {},
           },
         });
