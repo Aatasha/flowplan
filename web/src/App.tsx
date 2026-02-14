@@ -7,6 +7,7 @@ import { NodePalette } from './components/NodePalette';
 import { PropertiesPanel } from './components/PropertiesPanel';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useWebSocket } from './hooks/useWebSocket';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 export default function App() {
   const theme = useFlowPlanStore((s) => s.theme);
@@ -69,5 +70,6 @@ export default function App() {
 function AutoSaveAndSocket() {
   useAutoSave();
   useWebSocket();
+  useKeyboardShortcuts();
   return null;
 }

@@ -126,3 +126,32 @@ body {
 .react-flow__attribution {
   display: none;
 }
+
+/* Edge connection handles — larger on hover */
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: var(--fp-border);
+  border: 2px solid var(--fp-bg);
+  transition: all 0.15s ease;
+}
+
+.react-flow__node:hover .react-flow__handle {
+  width: 12px;
+  height: 12px;
+  background: var(--fp-accent);
+  box-shadow: 0 0 6px var(--fp-accent);
+}
+
+/* Context menu hover states */
+.fp-ctx-item > div:hover {
+  background: var(--fp-bg-secondary);
+}
+
+.fp-ctx-submenu {
+  display: none;
+}
+
+.fp-ctx-item:hover > .fp-ctx-submenu {
+  display: block;
+}

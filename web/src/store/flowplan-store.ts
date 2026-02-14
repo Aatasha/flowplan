@@ -102,6 +102,12 @@ interface HistoryEntry {
   arrows: AnnotationArrow[];
 }
 
+interface ContextMenuState {
+  x: number;
+  y: number;
+  target: { type: 'node'; nodeId: string } | { type: 'edge'; edgeId: string } | { type: 'canvas' };
+}
+
 interface FlowPlanStore {
   // Flow slice
   nodes: Node[];
@@ -111,6 +117,9 @@ interface FlowPlanStore {
   onConnect: OnConnect;
   addNode: (node: Node) => void;
   removeNode: (nodeId: string) => void;
+  moveNode: (nodeId: string, newParentId: string | null) => void;
+  removeEdge: (edgeId: string) => void;
+  removeSelected: () => void;
   updateNodeData: (nodeId: string, data: Partial<FlowPlanNodeData>) => void;
   updateEdgeData: (edgeId: string, data: { label?: string; edgeType?: EdgeType }) => void;
 
@@ -136,6 +145,9 @@ interface FlowPlanStore {
   flowchartId: string | null;
   flowchartName: string;
   flowchartDescription: string;
+  contextMenu: ContextMenuState | null;
+  setContextMenu: (menu: ContextMenuState | null) => void;
+  deselectAll: () => void;
 
   // History slice
   past: HistoryEntry[];
@@ -204,6 +216,58 @@ export const useFlowPlanStore = create<FlowPlanStore>((set, get) => ({
     set((state) => ({
       nodes: state.nodes.filter((n) => n.id !== nodeId),
       edges: state.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+    }));
+    get().markDirty();
+  },
+  moveNode: (nodeId, newParentId) => {
+    get().pushHistory();
+    set((state) => {
+      const node = state.nodes.find((n) => n.id === nodeId);
+      if (!node) return state;
+
+      const oldParent = node.parentId ? state.nodes.find((n) => n.id === node.parentId) : null;
+      const newParent = newParentId ? state.nodes.find((n) => n.id === newParentId) : null;
+
+      // Convert position from relative-to-old-parent to absolute, then to relative-to-new-parent
+      const absX = node.position.x + (oldParent?.position.x ?? 0);
+      const absY = node.position.y + (oldParent?.position.y ?? 0);
+      const newX = absX - (newParent?.position.x ?? 0);
+      const newY = absY - (newParent?.position.y ?? 0);
+
+      return {
+        nodes: state.nodes.map((n) =>
+          n.id === nodeId
+            ? { ...n, parentId: newParentId ?? undefined, position: { x: newX, y: newY } }
+            : n,
+        ),
+      };
+    });
+    get().markDirty();
+  },
+  removeEdge: (edgeId) => {
+    get().pushHistory();
+    set((state) => ({
+      edges: state.edges.filter((e) => e.id !== edgeId),
+    }));
+    get().markDirty();
+  },
+  removeSelected: () => {
+    const { nodes, edges } = get();
+    const selectedNodeIds = nodes.filter((n) => n.selected).map((n) => n.id);
+    const selectedEdgeIds = edges.filter((e) => e.selected).map((e) => e.id);
+    if (selectedNodeIds.length === 0 && selectedEdgeIds.length === 0) return;
+
+    get().pushHistory();
+    set((state) => ({
+      nodes: state.nodes.filter((n) => !selectedNodeIds.includes(n.id)),
+      edges: state.edges.filter(
+        (e) =>
+          !selectedEdgeIds.includes(e.id) &&
+          !selectedNodeIds.includes(e.source) &&
+          !selectedNodeIds.includes(e.target),
+      ),
+      selectedNodeId: null,
+      selectedEdgeId: null,
     }));
     get().markDirty();
   },
@@ -283,6 +347,9 @@ export const useFlowPlanStore = create<FlowPlanStore>((set, get) => ({
   flowchartId: null,
   flowchartName: '',
   flowchartDescription: '',
+  contextMenu: null,
+  setContextMenu: (menu) => set({ contextMenu: menu }),
+  deselectAll: () => set({ selectedNodeId: null, selectedEdgeId: null, contextMenu: null }),
 
   // History slice
   past: [],
