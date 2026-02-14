@@ -29,6 +29,19 @@
 - [ ] Search/filter nodes
 - [ ] Minimap click-to-navigate
 
+## Needs Manual Testing
+
+The interactive node management features (context menu, keyboard shortcuts, drop-into-groups) were built and unit-tested but **not yet browser-tested**. Open a flowchart and verify before moving on.
+
 ## Next Step
 
-Fix PropertiesPanel to use the new `removeEdge()` action (one-line change, line ~221). Then consider Playwright E2E setup for the most breakage-prone flows.
+1. Browser-test the new features (see testing checklist in previous session notes)
+2. Fix PropertiesPanel to use the new `removeEdge()` action (one-line change, `web/src/components/PropertiesPanel.tsx` ~line 221)
+3. Then consider Playwright E2E setup for the most breakage-prone flows
+
+## Quick Reference
+
+- **Source:** `~/.claude/plugins/flowplan/web/src/`
+- **Tests:** `cd ~/.claude/plugins/flowplan/web && npx vitest run`
+- **Build + deploy:** `cd ~/.claude/plugins/flowplan/web && npx vite build && cp -r dist/ ~/.claude/plugins/cache/alistair-local/flowplan/0.1.0/web/dist/`
+- **GitHub:** `github.com/Aatasha/flowplan` branch `phase-1/mcp-server`
