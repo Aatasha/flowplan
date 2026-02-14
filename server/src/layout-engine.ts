@@ -98,10 +98,17 @@ export async function autoLayout(
     });
   }
 
-  // Build ELK edges (only for layout-eligible nodes)
+  // Build ELK edges — exclude failure edges (feedback loops) to prevent
+  // cycle-breaking from reversing forward edges and misplacing nodes.
+  // Failure edges are still rendered by React Flow; they just arc backward.
   const layoutNodeIds = new Set(layoutNodes.map((n) => n.id));
   const elkEdges: ElkEdge[] = doc.edges
-    .filter((e) => layoutNodeIds.has(e.source) && layoutNodeIds.has(e.target))
+    .filter(
+      (e) =>
+        e.type !== 'failure' &&
+        layoutNodeIds.has(e.source) &&
+        layoutNodeIds.has(e.target)
+    )
     .map((e) => ({
       id: e.id,
       sources: [e.source],
