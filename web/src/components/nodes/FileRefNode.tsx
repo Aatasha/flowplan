@@ -8,7 +8,7 @@ const actionColors: Record<string, string> = {
   delete: '#c62828',
 };
 
-export function FileRefNode({ data }: NodeProps) {
+export function FileRefNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   const action = (d.metadata?.action as string) ?? 'modify';
   return (
@@ -20,6 +20,7 @@ export function FileRefNode({ data }: NodeProps) {
         padding: '8px 12px',
         minWidth: 140,
         maxWidth: 220,
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       <Handle type="target" position={Position.Top} />

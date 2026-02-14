@@ -9,6 +9,20 @@ const DEFAULT_NODE_WIDTH = 180;
 const DEFAULT_NODE_HEIGHT = 60;
 const GROUP_PADDING = 40;
 
+function getNodeDimensions(type: string): { width: number; height: number } {
+  switch (type) {
+    case 'decision':
+      return { width: 160, height: 120 };
+    case 'milestone':
+      return { width: 180, height: 70 };
+    case 'start':
+    case 'end':
+      return { width: 120, height: 50 };
+    default:
+      return { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
+  }
+}
+
 interface ElkNode {
   id: string;
   width: number;
@@ -66,21 +80,21 @@ export async function autoLayout(
         layoutOptions: {
           'elk.padding': `[top=${GROUP_PADDING},left=${GROUP_PADDING},bottom=${GROUP_PADDING},right=${GROUP_PADDING}]`,
         },
-        children: children.map((child) => ({
-          id: child.id,
-          width: DEFAULT_NODE_WIDTH,
-          height: DEFAULT_NODE_HEIGHT,
-        })),
+        children: children.map((child) => {
+          const dims = getNodeDimensions(child.type);
+          return { id: child.id, width: dims.width, height: dims.height };
+        }),
       });
     }
   }
 
   // Add top-level non-group nodes
   for (const node of topLevel) {
+    const dims = getNodeDimensions(node.type);
     elkChildren.push({
       id: node.id,
-      width: DEFAULT_NODE_WIDTH,
-      height: DEFAULT_NODE_HEIGHT,
+      width: dims.width,
+      height: dims.height,
     });
   }
 
@@ -101,6 +115,7 @@ export async function autoLayout(
       'elk.direction': direction === 'TB' ? 'DOWN' : 'RIGHT',
       'elk.spacing.nodeNode': '50',
       'elk.layered.spacing.nodeNodeBetweenLayers': '80',
+      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     },
     children: elkChildren,
     edges: elkEdges,

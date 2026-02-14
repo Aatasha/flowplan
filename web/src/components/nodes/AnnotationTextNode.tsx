@@ -1,7 +1,7 @@
 import type { NodeProps } from '@xyflow/react';
 import type { FlowPlanNodeData } from '../../types/flowchart';
 
-export function AnnotationTextNode({ data }: NodeProps) {
+export function AnnotationTextNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   return (
     <div
@@ -12,6 +12,7 @@ export function AnnotationTextNode({ data }: NodeProps) {
         color: 'var(--fp-text)',
         padding: '4px 6px',
         minWidth: 60,
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       {d.label}

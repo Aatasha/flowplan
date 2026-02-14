@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Database } from 'lucide-react';
 import type { FlowPlanNodeData } from '../../types/flowchart';
 
-export function DbEntityNode({ data }: NodeProps) {
+export function DbEntityNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   return (
     <div
@@ -13,6 +13,7 @@ export function DbEntityNode({ data }: NodeProps) {
         padding: '10px 14px 14px',
         minWidth: 120,
         textAlign: 'center',
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       <Handle type="target" position={Position.Top} />

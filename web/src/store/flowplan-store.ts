@@ -112,6 +112,7 @@ interface FlowPlanStore {
   addNode: (node: Node) => void;
   removeNode: (nodeId: string) => void;
   updateNodeData: (nodeId: string, data: Partial<FlowPlanNodeData>) => void;
+  updateEdgeData: (edgeId: string, data: { label?: string; edgeType?: EdgeType }) => void;
 
   // Annotation slice
   strokes: AnnotationStroke[];
@@ -207,10 +208,33 @@ export const useFlowPlanStore = create<FlowPlanStore>((set, get) => ({
     get().markDirty();
   },
   updateNodeData: (nodeId, data) => {
+    get().pushHistory();
     set((state) => ({
       nodes: state.nodes.map((n) =>
         n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
       ),
+    }));
+    get().markDirty();
+  },
+
+  updateEdgeData: (edgeId, data) => {
+    get().pushHistory();
+    set((state) => ({
+      edges: state.edges.map((e) => {
+        if (e.id !== edgeId) return e;
+        const currentData = (e.data as any) ?? {};
+        const newEdgeType = data.edgeType ?? currentData.edgeType ?? 'default';
+        return {
+          ...e,
+          label: data.label ?? currentData.label ?? '',
+          style: getEdgeStyle(newEdgeType as EdgeType),
+          data: {
+            ...currentData,
+            ...(data.label !== undefined ? { label: data.label } : {}),
+            ...(data.edgeType !== undefined ? { edgeType: data.edgeType } : {}),
+          },
+        };
+      }),
     }));
     get().markDirty();
   },

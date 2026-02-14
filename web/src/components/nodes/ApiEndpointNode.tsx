@@ -9,7 +9,7 @@ const methodColors: Record<string, string> = {
   PATCH: '#7b1fa2',
 };
 
-export function ApiEndpointNode({ data }: NodeProps) {
+export function ApiEndpointNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   const method = (d.metadata?.method as string) ?? 'GET';
   const path = (d.metadata?.path as string) ?? d.label;
@@ -22,6 +22,7 @@ export function ApiEndpointNode({ data }: NodeProps) {
         padding: '8px 12px',
         minWidth: 140,
         maxWidth: 240,
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       <Handle type="target" position={Position.Top} />

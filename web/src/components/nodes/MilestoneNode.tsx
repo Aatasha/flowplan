@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Flag } from 'lucide-react';
 import type { FlowPlanNodeData } from '../../types/flowchart';
 
-export function MilestoneNode({ data }: NodeProps) {
+export function MilestoneNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   return (
     <div
@@ -15,6 +15,7 @@ export function MilestoneNode({ data }: NodeProps) {
         display: 'flex',
         alignItems: 'center',
         gap: 6,
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       <Handle type="target" position={Position.Top} />

@@ -7,6 +7,10 @@ export function PropertiesPanel() {
   const nodes = useFlowPlanStore((s) => s.nodes);
   const edges = useFlowPlanStore((s) => s.edges);
   const updateNodeData = useFlowPlanStore((s) => s.updateNodeData);
+  const updateEdgeData = useFlowPlanStore((s) => s.updateEdgeData);
+  const removeNode = useFlowPlanStore((s) => s.removeNode);
+  const setSelectedNodeId = useFlowPlanStore((s) => s.setSelectedNodeId);
+  const setSelectedEdgeId = useFlowPlanStore((s) => s.setSelectedEdgeId);
   const flowchartName = useFlowPlanStore((s) => s.flowchartName);
   const flowchartDescription = useFlowPlanStore((s) => s.flowchartDescription);
 
@@ -169,6 +173,25 @@ export function PropertiesPanel() {
               </select>
             </>
           )}
+
+          <button
+            onClick={() => {
+              removeNode(selectedNode.id);
+              setSelectedNodeId(null);
+            }}
+            style={{
+              ...inputStyle,
+              marginTop: 20,
+              cursor: 'pointer',
+              background: 'var(--fp-status-blocked, #c62828)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              textAlign: 'center',
+            }}
+          >
+            Delete Node
+          </button>
         </>
       ) : selectedEdge ? (
         <>
@@ -178,20 +201,40 @@ export function PropertiesPanel() {
           <input
             style={inputStyle}
             value={(selectedEdge.data as any)?.label ?? ''}
-            readOnly
+            onChange={(e) => updateEdgeData(selectedEdge.id, { label: e.target.value })}
           />
 
           <div style={labelStyle}>Type</div>
           <select
             style={inputStyle}
             value={(selectedEdge.data as any)?.edgeType ?? 'default'}
-            disabled
+            onChange={(e) => updateEdgeData(selectedEdge.id, { edgeType: e.target.value as EdgeType })}
           >
             <option value="default">Default</option>
             <option value="success">Success</option>
             <option value="failure">Failure</option>
             <option value="conditional">Conditional</option>
           </select>
+
+          <button
+            onClick={() => {
+              const onEdgesChange = useFlowPlanStore.getState().onEdgesChange;
+              onEdgesChange([{ id: selectedEdge.id, type: 'remove' }]);
+              setSelectedEdgeId(null);
+            }}
+            style={{
+              ...inputStyle,
+              marginTop: 20,
+              cursor: 'pointer',
+              background: 'var(--fp-status-blocked, #c62828)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 600,
+              textAlign: 'center',
+            }}
+          >
+            Delete Edge
+          </button>
         </>
       ) : (
         <>

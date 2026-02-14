@@ -1,6 +1,8 @@
 {
-  "flowplan": {
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"]
+  "mcpServers": {
+    "flowplan": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/dist/index.js"]
+    }
   }
 }

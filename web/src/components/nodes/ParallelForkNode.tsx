@@ -1,7 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { FlowPlanNodeData } from '../../types/flowchart';
 
-export function ParallelForkNode({ data }: NodeProps) {
+export function ParallelForkNode({ data, selected }: NodeProps) {
   const d = data as unknown as FlowPlanNodeData;
   const mode = (d.metadata?.mode as string) ?? 'fork';
   const isFork = mode === 'fork';
@@ -15,6 +15,7 @@ export function ParallelForkNode({ data }: NodeProps) {
         width: 120,
         height: 12,
         position: 'relative',
+        boxShadow: selected ? '0 0 0 2px var(--fp-accent, #6366f1)' : 'none',
       }}
     >
       {isFork ? (
