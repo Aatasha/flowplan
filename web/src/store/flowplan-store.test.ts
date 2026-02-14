@@ -256,5 +256,204 @@ describe('flowplan-store', () => {
       const edge = useFlowPlanStore.getState().edges[0];
       expect((edge.data as any).edgeType).toBe('success');
     });
+
+    it('updates edge label', () => {
+      useFlowPlanStore.setState({
+        edges: [makeEdge('e1', 'n1', 'n2')],
+      });
+      useFlowPlanStore.getState().updateEdgeData('e1', { label: 'yes' });
+      const edge = useFlowPlanStore.getState().edges[0];
+      expect((edge.data as any).label).toBe('yes');
+    });
+
+    it('pushes history', () => {
+      useFlowPlanStore.setState({
+        edges: [makeEdge('e1', 'n1', 'n2')],
+      });
+      useFlowPlanStore.getState().updateEdgeData('e1', { edgeType: 'failure' });
+      expect(useFlowPlanStore.getState().past).toHaveLength(1);
+    });
+  });
+
+  describe('updateNodeData', () => {
+    it('updates node label', () => {
+      useFlowPlanStore.setState({ nodes: [makeNode('n1')] });
+      useFlowPlanStore.getState().updateNodeData('n1', { label: 'New Label' });
+      const node = useFlowPlanStore.getState().nodes[0];
+      expect((node.data as any).label).toBe('New Label');
+    });
+
+    it('updates node status', () => {
+      useFlowPlanStore.setState({ nodes: [makeNode('n1')] });
+      useFlowPlanStore.getState().updateNodeData('n1', { status: 'completed' });
+      const node = useFlowPlanStore.getState().nodes[0];
+      expect((node.data as any).status).toBe('completed');
+    });
+
+    it('pushes history and marks dirty', () => {
+      useFlowPlanStore.setState({ nodes: [makeNode('n1')] });
+      useFlowPlanStore.getState().updateNodeData('n1', { label: 'Updated' });
+      expect(useFlowPlanStore.getState().past).toHaveLength(1);
+      expect(useFlowPlanStore.getState().isDirty).toBe(true);
+    });
+  });
+
+  describe('annotations', () => {
+    it('adds and removes strokes', () => {
+      const stroke = { id: 's1', points: [[0, 0, 0.5] as [number, number, number]], color: '#ff0000', width: 3 };
+      useFlowPlanStore.getState().addStroke(stroke);
+      expect(useFlowPlanStore.getState().strokes).toHaveLength(1);
+      expect(useFlowPlanStore.getState().past).toHaveLength(1);
+
+      useFlowPlanStore.getState().removeStroke('s1');
+      expect(useFlowPlanStore.getState().strokes).toHaveLength(0);
+      expect(useFlowPlanStore.getState().past).toHaveLength(2);
+    });
+
+    it('adds and removes arrows', () => {
+      const arrow = { id: 'a1', start: { x: 0, y: 0 }, end: { x: 100, y: 100 }, color: '#0000ff' };
+      useFlowPlanStore.getState().addArrow(arrow);
+      expect(useFlowPlanStore.getState().arrows).toHaveLength(1);
+
+      useFlowPlanStore.getState().removeArrow('a1');
+      expect(useFlowPlanStore.getState().arrows).toHaveLength(0);
+    });
+
+    it('stroke operations are undoable', () => {
+      const stroke = { id: 's1', points: [[10, 20, 0.5] as [number, number, number]], color: '#000', width: 2 };
+      useFlowPlanStore.getState().addStroke(stroke);
+      useFlowPlanStore.getState().undo();
+      expect(useFlowPlanStore.getState().strokes).toHaveLength(0);
+    });
+  });
+
+  describe('history limits', () => {
+    it('caps undo history at 50 entries', () => {
+      for (let i = 0; i < 55; i++) {
+        useFlowPlanStore.getState().addNode(makeNode(`n${i}`));
+      }
+      // 55 addNode calls = 55 history pushes, capped at 50
+      expect(useFlowPlanStore.getState().past.length).toBeLessThanOrEqual(50);
+    });
+
+    it('clears future on new action after undo', () => {
+      useFlowPlanStore.getState().addNode(makeNode('n1'));
+      useFlowPlanStore.getState().addNode(makeNode('n2'));
+      useFlowPlanStore.getState().undo();
+      expect(useFlowPlanStore.getState().future).toHaveLength(1);
+
+      // New action should clear future
+      useFlowPlanStore.getState().addNode(makeNode('n3'));
+      expect(useFlowPlanStore.getState().future).toHaveLength(0);
+    });
+  });
+
+  describe('serialization (toDocument / fromDocument)', () => {
+    it('round-trips nodes and edges', () => {
+      useFlowPlanStore.setState({
+        flowchartId: 'test-flow',
+        flowchartName: 'Test Flow',
+        flowchartDescription: 'A test',
+        nodes: [makeNode('n1'), makeNode('n2')],
+        edges: [makeEdge('e1', 'n1', 'n2')],
+      });
+
+      const doc = useFlowPlanStore.getState().toDocument();
+      expect(doc.id).toBe('test-flow');
+      expect(doc.name).toBe('Test Flow');
+      expect(doc.nodes).toHaveLength(2);
+      expect(doc.edges).toHaveLength(1);
+
+      // Reset and load back
+      resetStore();
+      useFlowPlanStore.getState().fromDocument(doc);
+
+      const state = useFlowPlanStore.getState();
+      expect(state.flowchartId).toBe('test-flow');
+      expect(state.nodes).toHaveLength(2);
+      expect(state.edges).toHaveLength(1);
+    });
+
+    it('fromDocument resets history', () => {
+      useFlowPlanStore.getState().addNode(makeNode('n1'));
+      expect(useFlowPlanStore.getState().past).toHaveLength(1);
+
+      useFlowPlanStore.getState().fromDocument({
+        id: 'fresh',
+        name: 'Fresh',
+        description: '',
+        version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        viewport: { x: 0, y: 0, zoom: 1 },
+        engineeringMode: false,
+        nodes: [],
+        edges: [],
+        annotations: { strokes: [], arrows: [] },
+      });
+
+      expect(useFlowPlanStore.getState().past).toHaveLength(0);
+      expect(useFlowPlanStore.getState().future).toHaveLength(0);
+      expect(useFlowPlanStore.getState().isDirty).toBe(false);
+    });
+
+    it('round-trips annotations', () => {
+      const stroke = { id: 's1', points: [[1, 2, 0.5] as [number, number, number]], color: '#f00', width: 2 };
+      const arrow = { id: 'a1', start: { x: 0, y: 0 }, end: { x: 50, y: 50 }, color: '#00f' };
+
+      useFlowPlanStore.getState().addStroke(stroke);
+      useFlowPlanStore.getState().addArrow(arrow);
+
+      const doc = useFlowPlanStore.getState().toDocument();
+      expect(doc.annotations.strokes).toHaveLength(1);
+      expect(doc.annotations.arrows).toHaveLength(1);
+
+      resetStore();
+      useFlowPlanStore.getState().fromDocument(doc);
+      expect(useFlowPlanStore.getState().strokes).toHaveLength(1);
+      expect(useFlowPlanStore.getState().arrows).toHaveLength(1);
+    });
+  });
+
+  describe('UI state', () => {
+    it('setSelectedNodeId clears selectedEdgeId', () => {
+      useFlowPlanStore.setState({ selectedEdgeId: 'e1' });
+      useFlowPlanStore.getState().setSelectedNodeId('n1');
+      const state = useFlowPlanStore.getState();
+      expect(state.selectedNodeId).toBe('n1');
+      expect(state.selectedEdgeId).toBeNull();
+    });
+
+    it('setSelectedEdgeId clears selectedNodeId', () => {
+      useFlowPlanStore.setState({ selectedNodeId: 'n1' });
+      useFlowPlanStore.getState().setSelectedEdgeId('e1');
+      const state = useFlowPlanStore.getState();
+      expect(state.selectedEdgeId).toBe('e1');
+      expect(state.selectedNodeId).toBeNull();
+    });
+
+    it('toggleEngineering flips the flag', () => {
+      expect(useFlowPlanStore.getState().showEngineering).toBe(false);
+      useFlowPlanStore.getState().toggleEngineering();
+      expect(useFlowPlanStore.getState().showEngineering).toBe(true);
+      useFlowPlanStore.getState().toggleEngineering();
+      expect(useFlowPlanStore.getState().showEngineering).toBe(false);
+    });
+
+    it('setInteractionMode changes mode', () => {
+      useFlowPlanStore.getState().setInteractionMode('pen');
+      expect(useFlowPlanStore.getState().interactionMode).toBe('pen');
+      useFlowPlanStore.getState().setInteractionMode('select');
+      expect(useFlowPlanStore.getState().interactionMode).toBe('select');
+    });
+
+    it('markDirty / markSaved toggle persistence state', () => {
+      expect(useFlowPlanStore.getState().isDirty).toBe(false);
+      useFlowPlanStore.getState().markDirty();
+      expect(useFlowPlanStore.getState().isDirty).toBe(true);
+      useFlowPlanStore.getState().markSaved();
+      expect(useFlowPlanStore.getState().isDirty).toBe(false);
+      expect(useFlowPlanStore.getState().lastSavedAt).not.toBeNull();
+    });
   });
 });

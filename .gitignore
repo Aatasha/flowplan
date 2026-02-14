@@ -5,3 +5,8 @@ node_modules/
 # Keep dist/ committed for zero-build install
 # !server/dist/
 # !web/dist/
+
+# Test artifacts
+test-results/
+playwright-report/
+web/tsconfig.tsbuildinfo

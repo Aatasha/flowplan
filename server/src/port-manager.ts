@@ -35,6 +35,11 @@ function isPidAlive(pid: number): boolean {
 }
 
 export async function getPort(projectDir: string): Promise<number> {
+  // Allow overriding via env var (useful for E2E tests)
+  if (process.env.FLOWPLAN_PORT) {
+    return parseInt(process.env.FLOWPLAN_PORT, 10);
+  }
+
   const flowplansDir = path.join(projectDir, '.claude', 'flowplans');
   const portFile = path.join(flowplansDir, '.port');
 

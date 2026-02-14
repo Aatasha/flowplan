@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:open --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
@@ -21,6 +23,7 @@
     "@types/ws": "^8.18.1",
     "esbuild": "^0.27.3",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
