@@ -12,32 +12,31 @@
 - [x] Interactive node management: context menu, keyboard shortcuts, drop-into-groups
 - [x] Edge handle polish + connection line styling
 - [x] Merged to `main` branch, set as default on GitHub
-- [x] **Vitest server tests** (36 tests): FlowchartStore CRUD/events/versioning, layout engine positioning/groups/failure-edge-exclusion
-- [x] **Vitest web tests** (37 tests): store actions, undo/redo, annotations, serialization round-trip, history limits, UI state
-- [x] **Playwright E2E tests** (8 tests): REST API CRUD + 404, web app rendering, node/edge display, WebSocket live sync
+- [x] **Vitest server tests** (37 tests): FlowchartStore CRUD/events/versioning/explicitId, layout engine
+- [x] **Vitest web tests** (37 tests): store actions, undo/redo, annotations, serialization, UI state
+- [x] **Playwright E2E tests** (9 tests): REST API CRUD + 404 + upsert regression, web app, WebSocket sync, export buttons
 - [x] FLOWPLAN_PORT env var for deterministic port in tests
+- [x] **Fix: PUT upsert ID mismatch** — `create()` now accepts `explicitId`, PUT uses URL param
+- [x] **Fix: PropertiesPanel edge delete** — uses `removeEdge()` (undoable) instead of `onEdgesChange` bypass
+- [x] **Export flowchart as PNG/SVG** — `useExport` hook + toolbar buttons, uses `html-to-image`
 
 ## Test Commands
 
 ```bash
-npm test              # All unit tests (server + web)
-npm run test:e2e      # Playwright E2E (starts server automatically)
-npm run test:all      # Unit + E2E
+npm test              # All unit tests (server + web): 74 tests
+npm run test:e2e      # Playwright E2E (starts server): 9 tests
+npm run test:all      # Everything: 83 tests
 ```
 
 ## Known Issues
 
 - **Plugin cache**: Source at `~/.claude/plugins/flowplan/`, cache at `~/.claude/plugins/cache/alistair-local/flowplan/0.1.0/`. After rebuild, sync to both.
-- **PUT upsert ID mismatch**: The endpoint creates via `nameToId(name)` which may differ from URL param. Tests use matching names/slugs as workaround.
 - **Drag outside parent**: Child nodes can escape phase groups. Workaround: "Arrange" button.
-- **Server restart**: Layout engine changes need Claude Code restart.
+- **Server restart**: Layout/server changes need Claude Code restart (MCP runs from bundled JS).
 
 ## Backlog
 
-- [ ] Fix PUT upsert to use URL param as ID (not derived from name)
-- [ ] PropertiesPanel: use `removeEdge()` instead of `onEdgesChange` bypass
 - [ ] Constrain child node dragging within parent groups
-- [ ] Export flowchart as PNG/SVG
 - [ ] Node resize handles for phase groups
 - [ ] Copy/paste nodes (Cmd+C/V)
 - [ ] Multi-select rectangle (drag to select area)
@@ -47,10 +46,14 @@ npm run test:all      # Unit + E2E
 
 ## Next Step
 
-Pick up backlog items — PUT upsert ID fix is a quick win, then export PNG/SVG or copy/paste.
+Pick up backlog items — constrain child dragging or copy/paste are the highest-impact UX improvements.
 
 ## Quick Reference
 
 - **Source:** `~/.claude/plugins/flowplan/`
 - **GitHub:** `github.com/Aatasha/flowplan` (default branch: `main`)
-- **Build + deploy:** `cd web && npx vite build && cp -r dist/ ~/.claude/plugins/cache/alistair-local/flowplan/0.1.0/web/dist/`
+- **Build + deploy:**
+  ```bash
+  cd server && npm run build && cp dist/index.js ~/.claude/plugins/cache/alistair-local/flowplan/0.1.0/server/dist/index.js
+  cd web && npx vite build && cp -r dist/ ~/.claude/plugins/cache/alistair-local/flowplan/0.1.0/web/dist/
+  ```
