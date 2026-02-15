@@ -65,8 +65,8 @@ async function main() {
     try {
       const existing = store.read(req.params.id);
       if (!existing) {
-        // Create if it doesn't exist yet (upsert semantics)
-        store.create(req.body.name || req.params.id, req.body.description);
+        // Create using the URL param as the ID (not derived from name)
+        store.create(req.body.name || req.params.id, req.body.description, undefined, req.params.id);
         const doc = store.update(req.params.id, req.body);
         res.json(doc);
       } else {

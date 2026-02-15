@@ -160,9 +160,9 @@ export class FlowchartStore extends EventEmitter {
     return this.flowplansDir;
   }
 
-  create(name: string, description?: string, template?: string): string {
+  create(name: string, description?: string, template?: string, explicitId?: string): string {
     this.ensureDir();
-    const id = nameToId(name);
+    const id = explicitId || nameToId(name);
     const now = new Date().toISOString();
     const doc: FlowPlanDocument = {
       id,

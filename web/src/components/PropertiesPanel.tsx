@@ -218,8 +218,7 @@ export function PropertiesPanel() {
 
           <button
             onClick={() => {
-              const onEdgesChange = useFlowPlanStore.getState().onEdgesChange;
-              onEdgesChange([{ id: selectedEdge.id, type: 'remove' }]);
+              useFlowPlanStore.getState().removeEdge(selectedEdge.id);
               setSelectedEdgeId(null);
             }}
             style={{

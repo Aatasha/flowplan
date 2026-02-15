@@ -11,9 +11,12 @@ import {
   Wrench,
   Sun,
   Moon,
+  Image,
+  FileCode,
 } from 'lucide-react';
 import { useFlowPlanStore } from '../store/flowplan-store';
 import { useAutoLayout } from '../hooks/useAutoLayout';
+import { useExport } from '../hooks/useExport';
 import type { InteractionMode } from '../types/flowchart';
 
 const modeButtons: { mode: InteractionMode; Icon: typeof MousePointer2; label: string }[] = [
@@ -39,6 +42,7 @@ export function Toolbar() {
   const isDirty = useFlowPlanStore((s) => s.isDirty);
   const flowchartName = useFlowPlanStore((s) => s.flowchartName);
   const triggerLayout = useAutoLayout();
+  const { exportPng, exportSvg } = useExport();
 
   const btnStyle = (active: boolean) => ({
     background: active ? 'var(--fp-accent)' : 'transparent',
@@ -112,6 +116,17 @@ export function Toolbar() {
       >
         <Wrench size={14} />
       </button>
+
+      <div style={{ display: 'flex', gap: 2, borderLeft: '1px solid var(--fp-border)', paddingLeft: 8 }}>
+        <button style={btnStyle(false)} onClick={exportPng} title="Export PNG">
+          <Image size={14} />
+          <span>PNG</span>
+        </button>
+        <button style={btnStyle(false)} onClick={exportSvg} title="Export SVG">
+          <FileCode size={14} />
+          <span>SVG</span>
+        </button>
+      </div>
 
       <div style={{ flex: 1 }} />
 

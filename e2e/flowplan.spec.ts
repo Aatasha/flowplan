@@ -60,6 +60,25 @@ test.describe('FlowPlan E2E', () => {
       const res = await request.get(`${API}/api/flowchart/nonexistent-${Date.now()}`);
       expect(res.status()).toBe(404);
     });
+
+    test('PUT upsert uses URL param as ID even when name differs', async ({ request }) => {
+      const putRes = await request.put(`${API}/api/flowchart/my-custom-id`, {
+        data: {
+          name: 'A Completely Different Name',
+          description: 'Tests the explicitId fix',
+          nodes: [],
+          edges: [],
+        },
+      });
+      expect(putRes.ok()).toBe(true);
+
+      // Should be retrievable by the URL param ID, not the name slug
+      const getRes = await request.get(`${API}/api/flowchart/my-custom-id`);
+      expect(getRes.ok()).toBe(true);
+      const doc = await getRes.json();
+      expect(doc.id).toBe('my-custom-id');
+      expect(doc.name).toBe('A Completely Different Name');
+    });
   });
 
   test.describe('Web App', () => {
@@ -152,20 +171,30 @@ test.describe('FlowPlan E2E', () => {
       expect(edgeCount).toBeGreaterThanOrEqual(1);
     });
 
-    test('toolbar is visible', async ({ page, request }) => {
+    test('toolbar has export buttons', async ({ page, request }) => {
       await request.put(`${API}/api/flowchart/toolbar-test`, {
         data: {
           name: 'Toolbar Test',
           description: '',
-          nodes: [],
+          nodes: [
+            {
+              id: 'n1',
+              type: 'task',
+              position: { x: 100, y: 100 },
+              parentNode: null,
+              data: { label: 'Test', description: '', status: 'pending', metadata: {}, style: {} },
+            },
+          ],
           edges: [],
         },
       });
 
       await page.goto('/?id=toolbar-test');
-      // The toolbar should be visible in the UI
-      // Look for common toolbar elements (undo/redo buttons, mode selectors)
-      await expect(page.locator('#root')).toBeAttached();
+      await expect(page.locator('.react-flow__node').first()).toBeVisible({ timeout: 10_000 });
+
+      // Export buttons should be in the toolbar
+      await expect(page.getByTitle('Export PNG')).toBeVisible();
+      await expect(page.getByTitle('Export SVG')).toBeVisible();
     });
   });
 

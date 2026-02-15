@@ -53,6 +53,14 @@ describe('FlowchartStore', () => {
       expect(store.create('Hello World 123')).toBe('hello-world-123');
       expect(store.create('  Spaces & Symbols!  ')).toBe('spaces-symbols');
     });
+
+    it('uses explicitId when provided (upsert support)', () => {
+      const id = store.create('My Beautiful Plan', 'desc', undefined, 'custom-id');
+      expect(id).toBe('custom-id');
+      const doc = store.read('custom-id')!;
+      expect(doc.id).toBe('custom-id');
+      expect(doc.name).toBe('My Beautiful Plan');
+    });
   });
 
   describe('read', () => {
